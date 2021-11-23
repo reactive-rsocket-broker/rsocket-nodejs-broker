@@ -5,6 +5,7 @@ const {v4: uuidv4} = require('uuid');
 
 // active rsocket connections
 const CONNECTIONS = new Map();
+const APPS = new Map();
 
 const requestHandler = (requestingRSocket, setupPayload) => {
     // todo parse setup payload and inject request rsocket to global connections
@@ -14,18 +15,24 @@ const requestHandler = (requestingRSocket, setupPayload) => {
     requestingRSocket.connectionStatus().subscribe({
         onNext: status => {
             if (status.kind === 'CLOSED' || status.kind === 'ERROR') {
-                console.log("connection closed");
+                console.log("App closed", APPS.get(connectionId));
                 CONNECTIONS.delete(connectionId);
+                APPS.delete(connectionId);
             }
         },
         onSubscribe: subscription => subscription.request(Number.MAX_SAFE_INTEGER)
     });
     // metadata push
-    requestingRSocket.metadataPush({metadata: JSON.stringify({})}).subscribe();
+    requestingRSocket.metadataPush({metadata: JSON.stringify({uuid: connectionId})}).subscribe();
     // add to connections
     requestingRSocket.uuid = connectionId;
     CONNECTIONS.set(connectionId, requestingRSocket);
-    // responder
+    if (setupPayload.data) {
+        const appMetadata = JSON.parse(setupPayload.data);
+        console.log("App", appMetadata);
+        APPS.set(connectionId, appMetadata);
+    }
+    // rsocket responder
     return {
         requestResponse(payload) {
             // todo forward request to destination
