@@ -31,6 +31,21 @@ com.example.logging.LoggingService
 e=uuid
 ```
 
+# Broker对外服务接口
+
+* com.example.broker.BrokerService:  获取接入的应用列表，获取单个应用的详细信息
+
+# 应用需求描述样例 - 日志服务
+
+浏览器端发起RSocket请求，需要获取某一服务器下的日志信息： 
+
+* 请求类型： request/response
+* 请求格式： json
+* 请求路由： 需要带上对应服务器的UUID
+* 服务名称: com.example.logging.LoggingService
+* 服务接口: getLog(fileName, offset, limit) 其中offset为日志行号，limit为返回日志的总行数
+* 返回: 日志行数
+
 # References
 
 * RSocket Flowable API: https://github.com/rsocket/rsocket-js/blob/master/docs/03-flowable-api.md
