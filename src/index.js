@@ -1,3 +1,5 @@
+// noinspection JSUnusedGlobalSymbols
+
 const {RSocketServer} = require('rsocket-core');
 const RSocketWebSocketServer = require('rsocket-websocket-server');
 const {ReactiveSocket, Responder, Payload} = require("rsocket-types/build/ReactiveSocketTypes");
