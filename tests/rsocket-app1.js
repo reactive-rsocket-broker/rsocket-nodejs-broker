@@ -3,6 +3,8 @@ const {RSocketClient} = require("rsocket-core");
 const WebSocket = require('ws');
 const {Single} = require("rsocket-flowable");
 
+const appMetadata = {ip: '192.168.1.1', port: 8181, name: 'rsocket-app1'};
+
 const rsocketClient = new RSocketClient({
     setup: {
         keepAlive: 1000000,
@@ -10,7 +12,7 @@ const rsocketClient = new RSocketClient({
         metadataMimeType: 'message/x.rsocket.composite-metadata.v0',
         dataMimeType: 'application/json',
         payload: {
-            data: JSON.stringify({ip: '192.168.1.1', port: 8181, name: 'rsocket-app1'}),
+            data: JSON.stringify(appMetadata),
         }
     },
     transport: new RSocketWebSocketClient(
@@ -38,7 +40,7 @@ const rsocketClient = new RSocketClient({
         metadataPush(payload) {
             if (payload.metadata) {
                 console.log('metadataPush', payload.metadata);
-                rsocketClient.uuid = JSON.parse(payload.metadata).uuid;
+                appMetadata.uuid = JSON.parse(payload.metadata).uuid;
             }
             return Single.of({});
         },
