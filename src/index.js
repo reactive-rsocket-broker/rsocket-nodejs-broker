@@ -1,5 +1,6 @@
-const {RSocketServer, CompositeMetadata} = require('rsocket-core');
+const {RSocketServer} = require('rsocket-core');
 const RSocketWebSocketServer = require('rsocket-websocket-server');
+const {ReactiveSocket, Responder, Payload} =require("rsocket-types/build/ReactiveSocketTypes");
 const {Single} = require('rsocket-flowable');
 const {v4: uuidv4} = require('uuid');
 
@@ -7,9 +8,14 @@ const {v4: uuidv4} = require('uuid');
 const CONNECTIONS = new Map();
 const APPS = new Map();
 
+/**
+ * request handler
+ * @param requestingRSocket {ReactiveSocket}
+ * @param setupPayload {Payload}
+ * @return {Responder}
+ */
 const requestHandler = (requestingRSocket, setupPayload) => {
     // todo parse setup payload and inject request rsocket to global connections
-    //const compositeMetadata = new CompositeMetadata(setupPayload.metadata );
     let connectionId = uuidv4();
     // rsocket connection status subscribe
     requestingRSocket.connectionStatus().subscribe({
