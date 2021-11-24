@@ -25,15 +25,9 @@ const rsocketClient = new RSocketClient({
     ),
     responder: {
         requestResponse(payload) {
-            return new Promise((resolve, reject) => {
-                setTimeout(() => {
-                    resolve({
-                        data: {
-                            message: 'Hello, ' + payload.data.name + '!'
-                        }
-                    });
-                }, 1000);
-            });
+            return Single.of({
+                data: "xxx"
+            })
         },
         fireAndForget(payload) {
             console.log('fireAndForget', payload.data);
