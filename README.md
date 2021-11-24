@@ -43,9 +43,13 @@ RSocket的服务调用主要是基于RSocket的服务路由规范，详情请参
 
 RSocket的路由规则是由多个Tags组成，第一个tag是服务名称，后续的tag都是辅助路由，比如调用指定节点的服务，格式如下即可：
 
-```
-com.example.logging.LoggingService
-e=uuid
+```json
+{
+  "message/x.rsocket.routing.v0": [
+    "com.example.logging.LoggingService.getLog",
+    "e=uuid"
+  ]
+}
 ```
 
 # Broker对外服务接口
