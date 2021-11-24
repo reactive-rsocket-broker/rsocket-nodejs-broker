@@ -1,9 +1,13 @@
 RSocket Node.js Broker
 =======================
 
+RSocket Node.js Broker，架构如下:
+
+![RSocket Broker Architecture](./architecture.png)
+
 # 应用元信息
 
-应用向Broker注册时，需要提供对应的元信息，如果是外部的设备接入，还需要提供接入的Token信息，请参考 https://github.com/rsocket/rsocket/blob/master/Extensions/Security/Authentication.md 
+应用向Broker注册时，需要提供对应的元信息，如果是外部的设备接入，还需要提供接入的Token信息，请参考 https://github.com/rsocket/rsocket/blob/master/Extensions/Security/Authentication.md
 
 应用的元信息保存在setupPayload的data中，主要信息如下：
 
@@ -37,7 +41,7 @@ e=uuid
 
 # 应用需求描述样例 - 日志服务
 
-浏览器端发起RSocket请求，需要获取某一服务器下的日志信息： 
+浏览器端发起RSocket请求，需要获取某一服务器下的日志信息：
 
 * 请求类型： request/response
 * 请求格式： json
