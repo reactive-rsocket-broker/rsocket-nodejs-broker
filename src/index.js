@@ -39,11 +39,10 @@ const requestHandler = (requestingRSocket, setupPayload) => {
     });
     // metadata push
     requestingRSocket.metadataPush({metadata: JSON.stringify({uuid: connectionId})}).subscribe();
-    // add to connections
-    requestingRSocket.uuid = connectionId;
     CONNECTIONS.set(connectionId, requestingRSocket);
     if (setupPayload.data) {
         const appMetadata = JSON.parse(setupPayload.data);
+        appMetadata.uuid = connectionId;
         console.log("App", appMetadata);
         APPS.set(connectionId, appMetadata);
     }
