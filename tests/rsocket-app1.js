@@ -9,10 +9,11 @@ const rsocketClient = new RSocketClient({
     setup: {
         keepAlive: 1000000,
         lifetime: 100000,
-        metadataMimeType: 'message/x.rsocket.composite-metadata.v0',
+        metadataMimeType: 'application/json',
         dataMimeType: 'application/json',
         payload: {
             data: JSON.stringify(appMetadata),
+            metadata: JSON.stringify({token: '12345'})
         }
     },
     transport: new RSocketWebSocketClient(
