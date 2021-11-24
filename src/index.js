@@ -50,10 +50,9 @@ const requestHandler = (requestingRSocket, setupPayload) => {
     return {
         requestResponse(payload) {
             // todo forward request to destination
-            //const compositeMetadata = JSON.parse(payload.metadata );
-            return Single.of({
-                data: "Hello " + payload.data
-            });
+            const compositeMetadata = JSON.parse(payload.metadata );
+            const connectionId = "";
+            return CONNECTIONS.get(connectionId).requestResponse(payload);
         },
         metadataPush(payload) {
             return Single.of({});
