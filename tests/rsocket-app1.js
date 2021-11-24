@@ -52,8 +52,15 @@ const monoRSocket = rsocketClient.connect();
 
 monoRSocket.then(rsocket => {
     rsocket.requestResponse({
-        data: "leijuan",
-        metadata: ''
+        data: JSON.stringify({fileName: 'demo.log', offset: 0, length: 100}),
+        metadata: JSON.stringify(
+            {
+                "message/x.rsocket.routing.v0": [
+                    "com.example.logging.LoggingService.getLog",
+                    "e=uuid"
+                ]
+            }
+        )
     }).subscribe({
         onComplete: (payload) => console.log(payload),
         onError: error => {
