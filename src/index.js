@@ -1,11 +1,18 @@
 const {RSocketServer} = require('rsocket-core');
 const RSocketWebSocketServer = require('rsocket-websocket-server');
-const {ReactiveSocket, Responder, Payload} =require("rsocket-types/build/ReactiveSocketTypes");
+const {ReactiveSocket, Responder, Payload} = require("rsocket-types/build/ReactiveSocketTypes");
 const {Single} = require('rsocket-flowable');
 const {v4: uuidv4} = require('uuid');
 
-// active rsocket connections
+/**
+ * active connection
+ * @type {Map<string, ReactiveSocket>}
+ */
 const CONNECTIONS = new Map();
+/**
+ * active apps
+ * @type {Map<string, Object>}
+ */
 const APPS = new Map();
 
 /**
