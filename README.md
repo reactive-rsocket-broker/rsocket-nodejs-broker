@@ -3,7 +3,7 @@ RSocket Node.js Broker
 
 RSocket Node.js Broker，架构如下:
 
-![RSocket Broker Architecture](./architecture.png)
+![RSocket Broker Architecture](architecture.png)
 
 # 应用元信息
 
