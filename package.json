@@ -1,0 +1,24 @@
+{
+  "name": "rsocket-nodejs-broker",
+  "version": "0.1.0",
+  "description": "RSocket Node.js Broker",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "keywords": [
+    "rsocket",
+    "broker"
+  ],
+  "author": "linux_china <libing.chen@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "rsocket-core": "0.0.27",
+    "rsocket-flowable": "0.0.27",
+    "rsocket-types": "^0.0.27",
+    "rsocket-websocket-client": "0.0.27",
+    "rsocket-websocket-server": "0.0.27",
+    "ws": "^8.3.0",
+    "uuid": "^8.3.2"
+  }
+}
