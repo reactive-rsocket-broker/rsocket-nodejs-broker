@@ -5,6 +5,19 @@ RSocket Node.js Broker，架构如下:
 
 ![RSocket Broker Architecture](architecture.png)
 
+**注意实现**：
+
+* 考虑到接入的应用都是基于JavaScript，所以不再采用RSocket的Composite Metadata规范，而是采用JSON数据格式的规范，样例如下：
+
+```json
+{
+  "message/x.rsocket.routing.v0": [
+    "com.example.logging.LoggingService.getLog",
+    "e=uuid"
+  ]
+}
+```
+
 # 应用元信息
 
 应用向Broker注册时，需要提供对应的元信息，如果是外部的设备接入，还需要提供接入的Token信息，请参考 https://github.com/rsocket/rsocket/blob/master/Extensions/Security/Authentication.md
