@@ -7,7 +7,7 @@ const {Single} = require('rsocket-flowable');
 const {v4: uuidv4} = require('uuid');
 
 /**
- * active connection
+ * active connections
  * @type {Map<string, ReactiveSocket>}
  */
 const CONNECTIONS = new Map();
@@ -18,7 +18,7 @@ const CONNECTIONS = new Map();
 const APPS = new Map();
 
 /**
- * request handler
+ * rsocket request responder
  * @param requestingRSocket {ReactiveSocket}
  * @param setupPayload {Payload}
  * @return {Responder}
