@@ -1,5 +1,5 @@
 const RSocketWebSocketClient = require('rsocket-websocket-client').default;
-const {RSocketClient} = require("rsocket-core");
+const {RSocketClient, MESSAGE_RSOCKET_ROUTING, APPLICATION_JSON} = require("rsocket-core");
 const WebSocket = require('ws');
 const {Single} = require("rsocket-flowable");
 
@@ -9,8 +9,8 @@ const rsocketClient = new RSocketClient({
     setup: {
         keepAlive: 1000000,
         lifetime: 100000,
-        metadataMimeType: 'application/json',
-        dataMimeType: 'application/json',
+        metadataMimeType: APPLICATION_JSON._string,
+        dataMimeType: APPLICATION_JSON._string,
         payload: {
             data: JSON.stringify(appMetadata),
             metadata: JSON.stringify({token: '12345'})
@@ -24,14 +24,6 @@ const rsocketClient = new RSocketClient({
         }
     ),
     responder: {
-        requestResponse(payload) {
-            return Single.of({
-                data: "xxx"
-            })
-        },
-        fireAndForget(payload) {
-            console.log('fireAndForget', payload.data);
-        },
         metadataPush(payload) {
             if (payload.metadata) {
                 console.log('metadataPush', payload.metadata);
@@ -46,12 +38,12 @@ const monoRSocket = rsocketClient.connect();
 
 monoRSocket.then(rsocket => {
     rsocket.requestResponse({
-        data: JSON.stringify({fileName: 'demo.log', offset: 0, length: 100}),
+        data: JSON.stringify([1]),
         metadata: JSON.stringify(
             {
-                "message/x.rsocket.routing.v0": [
-                    "com.example.logging.LoggingService.getLog",
-                    "e=uuid"
+                [MESSAGE_RSOCKET_ROUTING._string]: [
+                    "com.example.UserService.findUserById",
+                    //"e=uuid"
                 ]
             }
         )
