@@ -4,7 +4,9 @@
   "description": "RSocket Node.js Broker",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js",
+    "broker": "node src/index.js",
+    "service": "node tests/rsocket-service1.js",
+    "client": "node tests/rsocket-app1.js",
     "lint": "eslint src/**/*.js"
   },
   "keywords": [
