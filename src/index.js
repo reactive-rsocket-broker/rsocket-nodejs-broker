@@ -55,7 +55,7 @@ function findDestination(compositeMetadata) {
  * rsocket request responder
  * @param requestingRSocket {ReactiveSocket}
  * @param setupPayload {Payload}
- * @return {Partial<Responder>}
+ * @return {Responder}
  */
 const requestHandler = (requestingRSocket, setupPayload) => {
     let connectionId = uuidv4();
@@ -134,7 +134,10 @@ const requestHandler = (requestingRSocket, setupPayload) => {
             }
         },
         metadataPush(payload) {
-            // metadata logic from apps
+            if (payload.metadata) {
+                //logic process, such as unregister
+                console.log('metadataPush', payload.metadata);
+            }
             return Single.of({});
         },
     };
