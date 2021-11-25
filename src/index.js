@@ -25,6 +25,23 @@ const APPS = new Map();
 const SERVICES = new Multimap();
 
 /**
+ * parse composite metadata json text to object
+ * @type {string} composite metadata json text
+ * @return {Object}
+ */
+function parseCompositeMetadata(compositeMetadata) {
+    try {
+        let result = JSON.parse(compositeMetadata);
+        if (typeof result !== 'object') {
+            return {};
+        }
+        return result;
+    } catch (e) {
+        return {};
+    }
+}
+
+/**
  * find destination RSocket
  * @param {Object} compositeMetadata
  * @return {ReactiveSocket|undefined}
@@ -62,7 +79,7 @@ const requestHandler = (requestingRSocket, setupPayload) => {
     /** @type {AppMetadata|undefined} */
     let appMetadata = undefined;
     if (setupPayload.data) {
-        appMetadata = JSON.parse(setupPayload.data);
+        appMetadata = parseCompositeMetadata(setupPayload.data);
     }
     // validate app metadata
     if (appMetadata) {
@@ -109,7 +126,7 @@ const requestHandler = (requestingRSocket, setupPayload) => {
     // RSocket responder
     return {
         requestResponse(payload) {
-            const compositeMetadata = JSON.parse(payload.metadata);
+            const compositeMetadata = parseCompositeMetadata(payload.metadata);
             let destinationRSocket = findDestination(compositeMetadata);
             if (destinationRSocket) {
                 return destinationRSocket.requestResponse(payload);
@@ -118,14 +135,14 @@ const requestHandler = (requestingRSocket, setupPayload) => {
             }
         },
         fireAndForget(payload) {
-            const compositeMetadata = JSON.parse(payload.metadata);
+            const compositeMetadata = parseCompositeMetadata(payload.metadata);
             let destinationRSocket = findDestination(compositeMetadata);
             if (destinationRSocket) {
                 destinationRSocket.fireAndForget(payload);
             }
         },
         requestStream(payload) {
-            const compositeMetadata = JSON.parse(payload.metadata);
+            const compositeMetadata = parseCompositeMetadata(payload.metadata);
             let destinationRSocket = findDestination(compositeMetadata);
             if (destinationRSocket) {
                 return destinationRSocket.requestStream(payload);
@@ -134,7 +151,8 @@ const requestHandler = (requestingRSocket, setupPayload) => {
             }
         },
         metadataPush(payload) {
-            if (payload.metadata) {
+            const compositeMetadata = parseCompositeMetadata(payload.metadata);
+            if (Object.keys(compositeMetadata).length > 0) {
                 //logic process, such as unregister
                 console.log('metadataPush', payload.metadata);
             }
