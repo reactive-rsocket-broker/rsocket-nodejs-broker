@@ -31,7 +31,7 @@ const SERVICES = new Multimap();
  */
 function parseCompositeMetadata(compositeMetadata) {
     try {
-        let result = JSON.parse(compositeMetadata);
+        const result = JSON.parse(compositeMetadata);
         if (typeof result !== 'object') {
             return {};
         }
