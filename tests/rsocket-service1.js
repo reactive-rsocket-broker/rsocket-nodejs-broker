@@ -8,8 +8,8 @@ const appMetadata = {ip: '192.168.1.2', name: 'rsocket-app2', services: ['com.ex
 
 const rsocketClient = new RSocketClient({
     setup: {
-        keepAlive: 1000000,
-        lifetime: 100000,
+        keepAlive: 300_000, //send keepalive every 5 minutes
+        lifetime: 2147483647, //disable keepalive respond timeout
         metadataMimeType: APPLICATION_JSON._string,
         dataMimeType: APPLICATION_JSON._string,
         payload: {
