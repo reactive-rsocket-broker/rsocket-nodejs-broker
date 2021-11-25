@@ -1,10 +1,12 @@
 // noinspection JSUnusedGlobalSymbols
 
-const {RSocketServer} = require('rsocket-core');
-const RSocketWebSocketServer = require('rsocket-websocket-server');
+const {RSocketServer, MESSAGE_RSOCKET_ROUTING} = require('rsocket-core');
+const WebSocketServerTransport = require('rsocket-websocket-server').default;
 const {ReactiveSocket, Responder, Payload} = require("rsocket-types/build/ReactiveSocketTypes");
-const {Single} = require('rsocket-flowable');
+const {Single, Flowable} = require('rsocket-flowable');
 const {v4: uuidv4} = require('uuid');
+const Multimap = require('multimap');
+const random = require('random')
 
 /**
  * active connections
@@ -13,56 +15,146 @@ const {v4: uuidv4} = require('uuid');
 const CONNECTIONS = new Map();
 /**
  * active apps
- * @type {Map<string, Object>}
+ * @type {Map<string, AppMetadata>}
  */
 const APPS = new Map();
+/**
+ * service registry
+ * @type {Multimap<string,string>}
+ */
+const SERVICES = new Multimap();
+
+/**
+ * find destination RSocket
+ * @param {Object} compositeMetadata
+ * @return {ReactiveSocket|undefined}
+ */
+function findDestination(compositeMetadata) {
+    let destinationRSocket = undefined;
+    /**@type {string[]} */
+    let rsocketRouting = compositeMetadata[MESSAGE_RSOCKET_ROUTING._string];
+    if (rsocketRouting) {
+        let destinationUUID = undefined;
+        if (rsocketRouting.length > 1 && rsocketRouting[1].startsWith("e=")) { // routing by endpoint UUID
+            destinationUUID = rsocketRouting[1].substring(2);
+            destinationRSocket = CONNECTIONS.get(destinationUUID);
+        } else { // routing by service name
+            const routingKey = rsocketRouting[0];
+            const serviceName = routingKey.substring(0, routingKey.lastIndexOf('.'));
+            const destinations = SERVICES.get(serviceName);
+            if (destinations) {
+                const destination = destinations[random.int(0, destinations.length - 1)];
+                destinationRSocket = CONNECTIONS.get(destination);
+            }
+        }
+    }
+    return destinationRSocket;
+}
 
 /**
  * rsocket request responder
  * @param requestingRSocket {ReactiveSocket}
  * @param setupPayload {Payload}
- * @return {Responder}
+ * @return {Partial<Responder>}
  */
 const requestHandler = (requestingRSocket, setupPayload) => {
-    // todo parse setup payload and inject request rsocket to global connections
     let connectionId = uuidv4();
+    /** @type {AppMetadata|undefined} */
+    let appMetadata = undefined;
+    if (setupPayload.data) {
+        appMetadata = JSON.parse(setupPayload.data);
+    }
+    // validate app metadata
+    if (appMetadata) {
+        appMetadata.uuid = connectionId;
+        appMetadata.createdAt = new Date();
+        console.log("App registered", appMetadata);
+        //register app
+        CONNECTIONS.set(connectionId, requestingRSocket);
+        APPS.set(connectionId, appMetadata);
+        //register services
+        if (appMetadata.services) {
+            appMetadata.services.forEach(service => {
+                console.log("Service", service);
+                SERVICES.set(service, appMetadata.uuid);
+            });
+        }
+    } else {
+        requestingRSocket.close();
+        return {};
+    }
     // rsocket connection status subscribe
     requestingRSocket.connectionStatus().subscribe({
         onNext: status => {
             if (status.kind === 'CLOSED' || status.kind === 'ERROR') {
-                console.log("App closed", APPS.get(connectionId));
+                let appMetadata = APPS.get(connectionId);
+                //unregister connection
                 CONNECTIONS.delete(connectionId);
-                APPS.delete(connectionId);
+                if (appMetadata) {
+                    console.log("App closed", appMetadata);
+                    APPS.delete(connectionId);
+                    //unregister services from registry
+                    if (appMetadata.services) {
+                        appMetadata.services.forEach(service => {
+                            SERVICES.delete(service, appMetadata.uuid);
+                        });
+                    }
+                }
             }
         },
         onSubscribe: subscription => subscription.request(Number.MAX_SAFE_INTEGER)
     });
-    // metadata push
+    // metadata push: uuid information to app
     requestingRSocket.metadataPush({metadata: JSON.stringify({uuid: connectionId})}).subscribe();
-    CONNECTIONS.set(connectionId, requestingRSocket);
-    if (setupPayload.data) {
-        const appMetadata = JSON.parse(setupPayload.data);
-        appMetadata.uuid = connectionId;
-        console.log("App", appMetadata);
-        APPS.set(connectionId, appMetadata);
-    }
-    // rsocket responder
+    // RSocket responder
     return {
         requestResponse(payload) {
-            // todo forward request to destination
-            const compositeMetadata = JSON.parse(payload.metadata );
-            const endpointId = "";
-            return CONNECTIONS.get(endpointId).requestResponse(payload);
+            const compositeMetadata = JSON.parse(payload.metadata);
+            let destinationRSocket = findDestination(compositeMetadata);
+            if (destinationRSocket) {
+                return destinationRSocket.requestResponse(payload);
+            } else {
+                return Single.error(new Error("APPLICATION_ERROR: no destination found"));
+            }
+        },
+        fireAndForget(payload) {
+            const compositeMetadata = JSON.parse(payload.metadata);
+            let destinationRSocket = findDestination(compositeMetadata);
+            if (destinationRSocket) {
+                destinationRSocket.fireAndForget(payload);
+            }
+        },
+        requestStream(payload) {
+            const compositeMetadata = JSON.parse(payload.metadata);
+            let destinationRSocket = findDestination(compositeMetadata);
+            if (destinationRSocket) {
+                return destinationRSocket.requestStream(payload);
+            } else {
+                return Flowable.error(new Error("APPLICATION_ERROR: no destination found"));
+            }
         },
         metadataPush(payload) {
+            // metadata logic from apps
             return Single.of({});
         },
     };
 };
 
-const WebSocketServerTransport = RSocketWebSocketServer.default;
-const transport = new WebSocketServerTransport({host: "127.0.0.1", port: 42252});
-const rsocketServer = new RSocketServer({transport: transport, getRequestHandler: requestHandler});
+const PORT = 42252;
+const transportServer = new WebSocketServerTransport({host: "0.0.0.0", port: PORT});
+const serverConfig = {transport: transportServer, getRequestHandler: requestHandler};
+// noinspection JSCheckFunctionSignatures
+const rsocketServer = new RSocketServer(serverConfig);
 rsocketServer.start();
 
+console.log(`RSocket Broker started on ${PORT}`);
+
+/**
+ * AppMetadata
+ * @typedef {Object} AppMetadata
+ * @property {string} uuid - connection id
+ * @property {string} name - app name
+ * @property {Date} createdAt - created timestamp
+ * @property {string[]} services - exposed services
+ */
 
