@@ -1,0 +1,21 @@
+{
+  "env": {
+    "node": true,
+    "commonjs": true,
+    "es2020": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2020,
+    "sourceType": "module"
+  },
+  "extends": [
+    "eslint:recommended"
+  ],
+  "plugins": [
+    "jsdoc"
+  ],
+  "rules": {
+    "jsdoc/no-undefined-types": 1,
+    "no-unused-vars": 1
+  }
+}
