@@ -37,6 +37,7 @@ const rsocketClient = new RSocketClient({
 const monoRSocket = rsocketClient.connect();
 
 monoRSocket.then(rsocket => {
+    console.log("Begin to call com.example.UserService.findUserById");
     rsocket.requestResponse({
         data: JSON.stringify([1]),
         metadata: JSON.stringify(
