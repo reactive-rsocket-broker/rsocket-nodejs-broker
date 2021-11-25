@@ -31,6 +31,9 @@ const SERVICES = new Multimap();
  */
 function parseCompositeMetadata(compositeMetadata) {
     try {
+        if (compositeMetadata.indexOf('{') > 0) {
+            compositeMetadata = compositeMetadata.substring(compositeMetadata.indexOf('{'));
+        }
         const result = JSON.parse(compositeMetadata);
         if (typeof result !== 'object') {
             return {};
@@ -92,7 +95,7 @@ const requestHandler = (requestingRSocket, setupPayload) => {
         //register services
         if (appMetadata.services) {
             appMetadata.services.forEach(service => {
-                console.log("Service", service);
+                console.log("Service registered", service);
                 SERVICES.set(service, appMetadata.uuid);
             });
         }
@@ -127,6 +130,14 @@ const requestHandler = (requestingRSocket, setupPayload) => {
     return {
         requestResponse(payload) {
             const compositeMetadata = parseCompositeMetadata(payload.metadata);
+            /**@type {string[]} */
+            const rsocketRouting = compositeMetadata[MESSAGE_RSOCKET_ROUTING._string];
+            // call broker services
+            if (rsocketRouting && rsocketRouting.length > 0 && rsocketRouting[0].startsWith("io.rsocket.broker.")) {
+                return Single.of({
+                    data: JSON.stringify(Object.fromEntries(APPS))
+                });
+            }
             let destinationRSocket = findDestination(compositeMetadata);
             if (destinationRSocket) {
                 return destinationRSocket.requestResponse(payload);
