@@ -30,6 +30,7 @@ const SERVICES = new Multimap();
  * @return {Object}
  */
 function parseCompositeMetadata(compositeMetadata) {
+    if (!compositeMetadata) return {};
     try {
         if (compositeMetadata.indexOf('{') > 0) {
             compositeMetadata = compositeMetadata.substring(compositeMetadata.indexOf('{'));
