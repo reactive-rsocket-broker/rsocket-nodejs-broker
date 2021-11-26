@@ -29,7 +29,10 @@ const rsocketClient = new RSocketClient({
                 console.log('metadataPush', payload.metadata);
                 appMetadata.uuid = JSON.parse(payload.metadata).uuid;
             }
-            return Single.of({});
+            return new Single(subscriber => {
+                subscriber.onSubscribe();
+                subscriber.onComplete(undefined);
+            });
         },
     }
 });
