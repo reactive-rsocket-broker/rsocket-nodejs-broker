@@ -129,11 +129,16 @@ function findDestination(compositeMetadata) {
             destinationRSocket = CONNECTIONS.get(destinationUUID);
         } else { // routing by service name
             const routingKey = rsocketRouting[0];
-            const serviceName = routingKey.substring(0, routingKey.lastIndexOf('.'));
+            const serviceName = routingKey.indexOf(".") > 0 ? routingKey.substring(0, routingKey.lastIndexOf('.')) : routingKey;
             const destinations = SERVICES.get(serviceName);
-            if (destinations) {
-                const destination = destinations[random.int(0, destinations.length - 1)];
-                destinationRSocket = CONNECTIONS.get(destination);
+            if (destinations && destinations.length > 0) {
+                let destinationUUID;
+                if (destinations.length === 1) {
+                    destinationUUID = destinations[0];
+                } else {
+                    destinationUUID = destinations[random.int(0, destinations.length - 1)];
+                }
+                destinationRSocket = CONNECTIONS.get(destinationUUID);
             }
         }
     }
