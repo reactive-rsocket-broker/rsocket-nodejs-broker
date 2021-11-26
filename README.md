@@ -52,9 +52,15 @@ RSocket的路由规则是由多个Tags组成，第一个tag是服务名称，后
 }
 ```
 
-# Broker对外服务接口
+# RSocket Broker的运维管理： Ops接口
 
-* com.example.broker.BrokerService:  获取接入的应用列表，获取单个应用的详细信息
+为了方便Ops管理，RSocket Broker提供了另外一个RSocket监听端口(42253), 用于接收Ops请求，如你可以通过以下命令就可以查看当前的Broker上的应用信息。
+
+```bash
+rsc --request ws://localhost:42253
+```
+
+监听不同的端口主要是安全的考虑，而且也容易实现。更多的Ops需求，你只需要实现opsRequestHandler函数即可。
 
 # 应用需求描述样例 - 日志服务
 
@@ -69,4 +75,6 @@ RSocket的路由规则是由多个Tags组成，第一个tag是服务名称，后
 
 # References
 
+* RSocket Protocol: https://rsocket.io/about/protocol
 * RSocket Flowable API: https://github.com/rsocket/rsocket-js/blob/master/docs/03-flowable-api.md
+* rsc: RSocket Client CLI https://github.com/making/rsc
