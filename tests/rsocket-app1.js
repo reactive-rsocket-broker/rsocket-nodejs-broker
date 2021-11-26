@@ -1,5 +1,5 @@
 const RSocketWebSocketClient = require('rsocket-websocket-client').default;
-const {RSocketClient, MESSAGE_RSOCKET_ROUTING, APPLICATION_JSON} = require("rsocket-core");
+const {RSocketClient, MESSAGE_RSOCKET_ROUTING, APPLICATION_JSON, MESSAGE_RSOCKET_AUTHENTICATION} = require("rsocket-core");
 const WebSocket = require('ws');
 const {Single} = require("rsocket-flowable");
 
@@ -13,7 +13,7 @@ const rsocketClient = new RSocketClient({
         dataMimeType: APPLICATION_JSON._string,
         payload: {
             data: JSON.stringify(appMetadata),
-            metadata: JSON.stringify({token: '12345'})
+            metadata: JSON.stringify({[MESSAGE_RSOCKET_AUTHENTICATION._string]: '12345'})
         }
     },
     transport: new RSocketWebSocketClient(
