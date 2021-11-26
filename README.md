@@ -100,6 +100,13 @@ rsc --request ws://localhost:42253
 
 监听不同的端口主要是安全的考虑，而且也容易实现。更多的Ops需求，你只需要实现opsRequestHandler函数即可。
 
+# 开发者体验(DX)
+
+考虑到实际的开发便捷性，建议应用自行实现以下功能： 
+
+* RSocket Flowable 和 RxJS之间相互转换
+* Single 和 Promise相互转换
+
 # References
 
 * RSocket Protocol: https://rsocket.io/about/protocol
