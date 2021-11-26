@@ -100,6 +100,8 @@ rsc --request ws://localhost:42253
 
 监听不同的端口主要是安全的考虑，而且也容易实现。更多的Ops需求，你只需要实现opsRequestHandler函数即可。
 
+如果对接的Ops系统无法使用RSocket协议，你可以在RSocket Broker中启动一个Express.js服务，对外提供REST API服务。
+
 # 开发者体验(DX)
 
 考虑到实际的开发便捷性，建议应用自行实现以下功能： 
