@@ -61,6 +61,14 @@ class RSocketBrokerRespondHandler {
 
     requestResponse(payload) {
         const compositeMetadata = parseCompositeMetadata(payload.metadata);
+        /**@type {string[]} */
+        const rsocketRouting = compositeMetadata[MESSAGE_RSOCKET_ROUTING._string];
+        // health check
+        if (rsocketRouting && rsocketRouting.length > 0 && rsocketRouting[0] === "ping") {
+            return Single.of({
+                data: '{"status":"UP"}',
+            });
+        }
         let destinationRSocket = findDestination(compositeMetadata);
         if (destinationRSocket) {
             return destinationRSocket.requestResponse(payload);
