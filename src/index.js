@@ -49,7 +49,7 @@ function parseCompositeMetadata(compositeMetadata) {
  * RSocket Response Handler for App
  * @extends Responder
  */
-class RSocketRespondHandler {
+class RSocketBrokerRespondHandler {
     /**
      * @param {ReactiveSocket} requestingRSocket request rsocket
      * @param {string} appId app id
@@ -61,14 +61,6 @@ class RSocketRespondHandler {
 
     requestResponse(payload) {
         const compositeMetadata = parseCompositeMetadata(payload.metadata);
-        /**@type {string[]} */
-        const rsocketRouting = compositeMetadata[MESSAGE_RSOCKET_ROUTING._string];
-        // call broker services
-        if (rsocketRouting && rsocketRouting.length > 0 && rsocketRouting[0].startsWith("io.rsocket.broker.")) {
-            return Single.of({
-                data: JSON.stringify(Object.fromEntries(APPS))
-            });
-        }
         let destinationRSocket = findDestination(compositeMetadata);
         if (destinationRSocket) {
             return destinationRSocket.requestResponse(payload);
@@ -141,12 +133,12 @@ function findDestination(compositeMetadata) {
 }
 
 /**
- * rsocket request responder
+ * rsocket broker request responder
  * @param requestingRSocket {ReactiveSocket}
  * @param setupPayload {Payload}
- * @return {RSocketRespondHandler}
+ * @return {RSocketBrokerRespondHandler}
  */
-const requestHandler = (requestingRSocket, setupPayload) => {
+const brokerRequestHandler = (requestingRSocket, setupPayload) => {
     let connectionId = uuidv4();
     /** @type {AppMetadata|undefined} */
     let appMetadata = undefined;
@@ -196,16 +188,38 @@ const requestHandler = (requestingRSocket, setupPayload) => {
     // metadata push: uuid information to app
     requestingRSocket.metadataPush({metadata: JSON.stringify({uuid: connectionId})}).subscribe();
     // RSocket responder
-    return new RSocketRespondHandler(requestingRSocket, connectionId);
+    return new RSocketBrokerRespondHandler(requestingRSocket, connectionId);
 };
 
-const PORT = 42252;
-const transportServer = new WebSocketServerTransport({host: "0.0.0.0", port: PORT});
-const serverConfig = {transport: transportServer, getRequestHandler: requestHandler};
-const rsocketServer = new RSocketServer(serverConfig);
-rsocketServer.start();
 
-console.log(`RSocket Broker started on ${PORT}`);
+/**
+ * rsocket OPS request responder
+ * @param _requestingRSocket {ReactiveSocket}
+ * @param _setupPayload {Payload}
+ * @return {Responder}
+ */
+const opsRequestHandler = (_requestingRSocket, _setupPayload) => {
+    return {
+        requestResponse(_payload) {
+            return Single.of({
+                data: JSON.stringify(Object.fromEntries(APPS))
+            });
+        }
+    };
+};
+
+function startRSocketServer(port, requestHandler, hint) {
+    const transportServer = new WebSocketServerTransport({host: "0.0.0.0", port: port});
+    const serverConfig = {transport: transportServer, getRequestHandler: requestHandler};
+    const rsocketServer = new RSocketServer(serverConfig);
+    rsocketServer.start();
+    console.log(`RSocket Server started on ${port}: ${hint}`);
+}
+
+// start RSocket Broker
+startRSocketServer(42252, brokerRequestHandler, "RSocket Broker Server");
+// start Ops Server
+startRSocketServer(42253, opsRequestHandler, "RSocket Ops Server");
 
 /**
  * AppMetadata
