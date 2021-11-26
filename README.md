@@ -7,14 +7,11 @@ RSocket Node.js Broker，架构如下:
 
 **注意实现**：
 
-* 考虑到接入的应用都是基于JavaScript，所以不再采用RSocket的Composite Metadata规范，而是采用JSON数据格式的规范，样例如下：
+* 考虑到接入的应用都是基于JavaScript，所以不再采用RSocket的Composite Metadata二进制规范，而是采用JSON数据格式，样例如下：
 
 ```json
 {
-  "message/x.rsocket.routing.v0": [
-    "com.example.logging.LoggingService.getLog",
-    "e=uuid"
-  ]
+  "message/x.rsocket.routing.v0": ["com.example.logging.LoggingService.getLog"]
 }
 ```
 
@@ -40,14 +37,13 @@ RSocket Node.js Broker，架构如下:
 # 服务调用路由规则
 
 RSocket的服务调用主要是基于RSocket的服务路由规范，详情请参考 https://github.com/rsocket/rsocket/blob/master/Extensions/Routing.md
-
-RSocket的路由规则是由多个Tags组成，第一个tag是服务名称，后续的tag都是辅助路由，比如调用指定节点的服务，格式如下即可：
+RSocket的路由规则是由多个Tags组成，第一个tag是请求的handler名称(服务名+函数名)，后续的tag都是辅助路由，比如调用指定节点的服务，格式如下即可：
 
 ```json
 {
   "message/x.rsocket.routing.v0": [
     "com.example.logging.LoggingService.getLog",
-    "e=uuid"
+    "e=bc75a624-834f-4bb0-95cf-de3956f96d3f"
   ]
 }
 ```
