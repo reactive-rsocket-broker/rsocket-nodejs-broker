@@ -162,9 +162,10 @@ const brokerRequestHandler = (requestingRSocket, setupPayload) => {
         CONNECTIONS.set(connectionId, requestingRSocket);
         APPS.set(connectionId, appMetadata);
         //register services
-        if (appMetadata.services) {
-            appMetadata.services.forEach(service => {
-                console.log("Service registered", service);
+        const appServices = appMetadata.services;
+        if (appServices && appServices.length > 0) {
+            appServices.forEach(service => {
+                console.log(`Service registered: ${service} @ ${connectionId} from ${appMetadata.name}`);
                 SERVICES.set(service, appMetadata.uuid);
             });
         }
