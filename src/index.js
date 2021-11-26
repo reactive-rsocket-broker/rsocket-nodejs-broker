@@ -46,6 +46,74 @@ function parseCompositeMetadata(compositeMetadata) {
 }
 
 /**
+ * RSocket Response Handler for App
+ * @extends Responder
+ */
+class RSocketRespondHandler {
+    /**
+     * @param {ReactiveSocket} requestingRSocket request rsocket
+     * @param {string} appId app id
+     */
+    constructor(requestingRSocket, appId) {
+        this.requestingRSocket = requestingRSocket;
+        this.appId = appId;
+    }
+
+    requestResponse(payload) {
+        const compositeMetadata = parseCompositeMetadata(payload.metadata);
+        /**@type {string[]} */
+        const rsocketRouting = compositeMetadata[MESSAGE_RSOCKET_ROUTING._string];
+        // call broker services
+        if (rsocketRouting && rsocketRouting.length > 0 && rsocketRouting[0].startsWith("io.rsocket.broker.")) {
+            return Single.of({
+                data: JSON.stringify(Object.fromEntries(APPS))
+            });
+        }
+        let destinationRSocket = findDestination(compositeMetadata);
+        if (destinationRSocket) {
+            return destinationRSocket.requestResponse(payload);
+        } else {
+            return Single.error(new Error("APPLICATION_ERROR: no destination found"));
+        }
+    }
+
+    fireAndForget(payload) {
+        const compositeMetadata = parseCompositeMetadata(payload.metadata);
+        let destinationRSocket = findDestination(compositeMetadata);
+        if (destinationRSocket) {
+            destinationRSocket.fireAndForget(payload);
+        }
+    }
+
+    requestStream(payload) {
+        const compositeMetadata = parseCompositeMetadata(payload.metadata);
+        let destinationRSocket = findDestination(compositeMetadata);
+        if (destinationRSocket) {
+            return destinationRSocket.requestStream(payload);
+        } else {
+            return Flowable.error(new Error("APPLICATION_ERROR: no destination found"));
+        }
+    }
+
+    metadataPush(payload) {
+        const compositeMetadata = parseCompositeMetadata(payload.metadata);
+        if (Object.keys(compositeMetadata).length > 0) {
+            //logic process, such as unregister
+            console.log('metadataPush', payload.metadata);
+        }
+        return new Single(subscriber => {
+            subscriber.onSubscribe();
+            subscriber.onComplete(undefined);
+        });
+    }
+
+    requestChannel(payloads) {
+        return Flowable.error(new Error("APPLICATION_ERROR: not implemented"));
+    }
+
+}
+
+/**
  * find destination RSocket
  * @param {Object} compositeMetadata
  * @return {ReactiveSocket|undefined}
@@ -76,7 +144,7 @@ function findDestination(compositeMetadata) {
  * rsocket request responder
  * @param requestingRSocket {ReactiveSocket}
  * @param setupPayload {Payload}
- * @return {Responder}
+ * @return {RSocketRespondHandler}
  */
 const requestHandler = (requestingRSocket, setupPayload) => {
     let connectionId = uuidv4();
@@ -128,55 +196,12 @@ const requestHandler = (requestingRSocket, setupPayload) => {
     // metadata push: uuid information to app
     requestingRSocket.metadataPush({metadata: JSON.stringify({uuid: connectionId})}).subscribe();
     // RSocket responder
-    return {
-        requestResponse(payload) {
-            const compositeMetadata = parseCompositeMetadata(payload.metadata);
-            /**@type {string[]} */
-            const rsocketRouting = compositeMetadata[MESSAGE_RSOCKET_ROUTING._string];
-            // call broker services
-            if (rsocketRouting && rsocketRouting.length > 0 && rsocketRouting[0].startsWith("io.rsocket.broker.")) {
-                return Single.of({
-                    data: JSON.stringify(Object.fromEntries(APPS))
-                });
-            }
-            let destinationRSocket = findDestination(compositeMetadata);
-            if (destinationRSocket) {
-                return destinationRSocket.requestResponse(payload);
-            } else {
-                return Single.error(new Error("APPLICATION_ERROR: no destination found"));
-            }
-        },
-        fireAndForget(payload) {
-            const compositeMetadata = parseCompositeMetadata(payload.metadata);
-            let destinationRSocket = findDestination(compositeMetadata);
-            if (destinationRSocket) {
-                destinationRSocket.fireAndForget(payload);
-            }
-        },
-        requestStream(payload) {
-            const compositeMetadata = parseCompositeMetadata(payload.metadata);
-            let destinationRSocket = findDestination(compositeMetadata);
-            if (destinationRSocket) {
-                return destinationRSocket.requestStream(payload);
-            } else {
-                return Flowable.error(new Error("APPLICATION_ERROR: no destination found"));
-            }
-        },
-        metadataPush(payload) {
-            const compositeMetadata = parseCompositeMetadata(payload.metadata);
-            if (Object.keys(compositeMetadata).length > 0) {
-                //logic process, such as unregister
-                console.log('metadataPush', payload.metadata);
-            }
-            return Single.of({});
-        },
-    };
+    return new RSocketRespondHandler(requestingRSocket, connectionId);
 };
 
 const PORT = 42252;
 const transportServer = new WebSocketServerTransport({host: "0.0.0.0", port: PORT});
 const serverConfig = {transport: transportServer, getRequestHandler: requestHandler};
-// noinspection JSCheckFunctionSignatures
 const rsocketServer = new RSocketServer(serverConfig);
 rsocketServer.start();
 
