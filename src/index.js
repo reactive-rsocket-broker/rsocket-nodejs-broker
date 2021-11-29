@@ -235,12 +235,3 @@ startRSocketServer(42252, brokerRequestHandler, "RSocket Broker Server");
 // start Ops Server
 startRSocketServer(42253, opsRequestHandler, "RSocket Ops Server");
 
-/**
- * AppMetadata
- * @typedef {Object} AppMetadata
- * @property {string} uuid - connection id
- * @property {string} name - app name
- * @property {Date} createdAt - created timestamp
- * @property {string[]} services - exposed services
- */
-
