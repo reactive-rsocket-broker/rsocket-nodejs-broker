@@ -176,7 +176,7 @@ const brokerRequestHandler = (requestingRSocket, setupPayload) => {
         }
     } else {
         requestingRSocket.close();
-        return {};
+        return undefined;
     }
     // rsocket connection status subscribe
     requestingRSocket.connectionStatus().subscribe({
