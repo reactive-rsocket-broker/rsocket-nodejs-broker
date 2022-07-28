@@ -24,7 +24,7 @@
     "rsocket-websocket-client": "0.0.27",
     "rsocket-websocket-server": "0.0.27",
     "uuid": "^8.3.2",
-    "ws": "^8.3.0"
+    "ws": "^8.8.1"
   },
   "devDependencies": {
     "@types/multimap": "^1.1.2",
@@ -33,10 +33,16 @@
     "@types/rsocket-types": "^0.0.3",
     "@types/rsocket-websocket-client": "0.0.4",
     "@types/rsocket-websocket-server": "0.0.3",
-    "@types/uuid": "^8.3.3",
-    "@types/ws": "^8.2.0",
-    "@typescript-eslint/eslint-plugin": "^5.4.0",
-    "eslint": "^8.3.0",
-    "eslint-plugin-jsdoc": "^37.0.3"
+    "@types/uuid": "^8.3.4",
+    "@types/ws": "^8.5.3",
+    "@typescript-eslint/eslint-plugin": "^5.31.0",
+    "eslint": "^8.20.0",
+    "eslint-plugin-jsdoc": "^39.3.3"
+  },
+  "engines": {
+    "node": "16.16.0"
+  },
+  "volta": {
+    "node": "16.16.0"
   }
 }
